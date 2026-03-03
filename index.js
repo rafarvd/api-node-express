@@ -5,8 +5,8 @@ const app = express();
 
 const MINUTOS = 10;
 const URL = process.env.URL;
-const PROXY = JSON.parse(process.env.PROXY || "[]");
-const ADDRESS = process.env.ADDRESS.split("\n");
+const PROXY = JSON.parse(process.env.PROXY || false);
+const ADDRESS = process.env.ADDRESS.split("\n") || "dvknvkjfnkjbfvjhkb";
 const INDEX = 4;
 
 async function run() {
@@ -53,9 +53,9 @@ async function run() {
     }
 
     await page.waitForTimeout(1000);
-    await page.click("button[type='button'] > span");
+    // await page.click("button[type='button'] > span");
 
-    await page.waitForTimeout(10000);
+    await page.waitForTimeout(1000);
     await page.screenshot({ path: "screen.png" });
 
   } catch (e) {
