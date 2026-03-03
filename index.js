@@ -3,10 +3,10 @@ const express = require("express");
 
 const app = express();
 
-const MINUTOS = 10;
+const MINUTOS = 5;
 const URL = process.env.URL;
-const PROXY = JSON.parse(process.env.PROXY || false);
-const ADDRESS = process.env.ADDRESS.split("\n") || "dvknvkjfnkjbfvjhkb";
+// const PROXY = JSON.parse(process.env.PROXY || false);
+const ADDRESS = process.env.ADDRESS;
 const INDEX = 4;
 
 async function run() {
@@ -20,7 +20,7 @@ async function run() {
       "--single-process"
     ],
     turnstile: true,
-    proxy: PROXY[INDEX] || false,
+    // proxy: PROXY[INDEX] || false,
     customConfig: {},
     connectOption: {
       defaultViewport: { width: 1280, height: 800 },
@@ -33,12 +33,12 @@ async function run() {
 
     await page.waitForTimeout(5000);
 
-    await page.type("#address", ADDRESS[INDEX]);
+    await page.type("#address", ADDRESS);
 
     const value = await page.$eval("#address", el => el.value);
-    if (value !== ADDRESS[INDEX]) {
+    if (value !== ADDRESS) {
       await page.$eval("#address", el => (el.value = ""));
-      await page.type("#address", ADDRESS[INDEX]);
+      await page.type("#address", ADDRESS);
     }
 
     const tempoTotal = MINUTOS * 60 * 1000;
