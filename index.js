@@ -1,64 +1,79 @@
-const express = require("express");
 const { connect } = require("puppeteer-real-browser");
+const express = require("express");
 
 const app = express();
 
+const MINUTOS = 10;
 const URL = process.env.URL;
-const PROXIES = JSON.parse(process.env.PROXY || "[]");
-const ADDRESSES = process.env.ADDRESS.split("\n");
+const PROXY = JSON.parse(process.env.PROXY || "[]");
+const ADDRESS = process.env.ADDRESS.split("\n");
+const INDEX = 4;
 
-const MAX_CONCURRENT = 5;
-const MINUTOS = 15;
-
-async function runBot(index) {
-  const { browser, page } = await connect({
-    headless: true,
+async function run() {
+  const { page, browser } = await connect({
+    headless: true, // 🔥 obrigatório no Render
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",
-      "--disable-dev-shm-usage"
+      "--disable-dev-shm-usage",
+      "--disable-gpu",
+      "--single-process"
     ],
-    proxy: PROXIES[index] || undefined,
+    turnstile: true,
+    proxy: PROXY[INDEX] || false,
+    customConfig: {},
+    connectOption: {
+      defaultViewport: { width: 1280, height: 800 },
+    },
+    plugins: [],
   });
 
   try {
     await page.goto(URL, { waitUntil: "networkidle2" });
 
-    await page.type("#address", ADDRESSES[index]);
+    await page.waitForTimeout(5000);
+
+    await page.type("#address", ADDRESS[INDEX]);
+
+    const value = await page.$eval("#address", el => el.value);
+    if (value !== ADDRESS[INDEX]) {
+      await page.$eval("#address", el => (el.value = ""));
+      await page.type("#address", ADDRESS[INDEX]);
+    }
 
     const tempoTotal = MINUTOS * 60 * 1000;
     const inicio = Date.now();
 
     while (Date.now() - inicio < tempoTotal) {
       try {
+        await page.waitForSelector("circle", { timeout: 2000 });
         await page.click("circle");
-      } catch {}
-      await new Promise(r => setTimeout(r, 400));
+      } catch (e) {}
+      await page.waitForTimeout(400);
     }
 
+    await page.waitForTimeout(1000);
+    await page.click("button[type='button'] > span");
+
+    await page.waitForTimeout(10000);
+    await page.screenshot({ path: "screen.png" });
+
   } catch (e) {
-    console.log("Erro bot", index);
+    console.error("erro", e);
   } finally {
     await browser.close();
   }
 }
 
-async function runAllBots() {
-  for (let i = 0; i < ADDRESSES.length; i += MAX_CONCURRENT) {
-    const lote = ADDRESSES.slice(i, i + MAX_CONCURRENT);
-    await Promise.all(
-      lote.map((_, idx) => runBot(i + idx))
-    );
-  }
-}
-
-app.get("/", async (req, res) => {
-  res.send("Service running");
+app.get("/", (req, res) => {
+  res.send("Bot ativo");
 });
 
 app.get("/run", async (req, res) => {
-  runAllBots();
-  res.send("Bots iniciados");
+  run();
+  res.send("Executando...");
 });
 
-app.listen(3000, () => console.log("Server on"));
+app.listen(process.env.PORT || 3000, () => {
+  console.log("Servidor rodando");
+});
