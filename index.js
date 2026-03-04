@@ -3,7 +3,7 @@ const express = require("express");
 
 const app = express();
 
-const MINUTOS = 5;
+const MINUTOS = 1;
 const URL = process.env.URL;
 // const PROXY = JSON.parse(process.env.PROXY || false);
 const ADDRESS = process.env.ADDRESS;
