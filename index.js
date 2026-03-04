@@ -36,7 +36,12 @@ async function run() {
   });
 
   try {
-    await page.goto(URL, { waitUntil: "networkidle2" });
+    // await page.goto(URL, { waitUntil: "networkidle2" });
+
+    await page.goto(URL, {
+  waitUntil: "domcontentloaded",
+  timeout: 90000
+});
 
     await new Promise((r) => setTimeout(r, 5000));
 
