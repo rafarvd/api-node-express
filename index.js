@@ -1,3 +1,5 @@
+// https://[url]/run?pass=[senha]
+
 import express from "express";
 import fetch from "node-fetch";
 
